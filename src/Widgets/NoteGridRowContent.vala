@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2017-2021 Lains
+* Copyright (C) 2017-2022 Lains
 *
 * This program is free software; you can redistribute it &&/or
 * modify it under the terms of the GNU General Public
@@ -16,8 +16,8 @@
 * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 * Boston, MA 02110-1301 USA
 */
-[GtkTemplate (ui = "/io/github/lainsce/Notejot/noterowcontent.ui")]
-public class Notejot.NoteRowContent : Adw.Bin {
+[GtkTemplate (ui = "/io/github/lainsce/Notejot/notegridrowcontent.ui")]
+public class Notejot.NoteGridRowContent : Adw.Bin {
     [GtkChild]
     unowned Gtk.Image pin;
     [GtkChild]
@@ -36,7 +36,7 @@ public class Notejot.NoteRowContent : Adw.Bin {
             _color = value;
 
             provider.load_from_data ((uint8[]) "@define-color note_color %s;".printf(_note.color));
-            ((NoteListView)MiscUtils.find_ancestor_of_type<NoteListView>(this)).view_model.update_note_color (_note, _color);
+            ((MainWindow)MiscUtils.find_ancestor_of_type<MainWindow>(this)).view_model.update_note_color (_note, _color);
         }
     }
 
@@ -56,7 +56,7 @@ public class Notejot.NoteRowContent : Adw.Bin {
         }
     }
 
-    public NoteRowContent (Note note) {
+    public NoteGridRowContent (Note note) {
         Object(
             note: note
         );
@@ -67,28 +67,20 @@ public class Notejot.NoteRowContent : Adw.Bin {
     }
 
     [GtkCallback]
-    string get_subtitle_line () {
-        var res = sync_subtitles (note.subtitle);
-        return res + " – " + note.text;
+    string get_text_line () {
+        var res = sync_texts (note.text);
+        return res;
     }
 
-    public string sync_subtitles (string subtitle) {
+    public string sync_texts (string text) {
         string res = "";
         try {
-            var reg = new Regex("""(?m)^.*, (?<day>\d{2})/(?<month>\d{2}) (?<hour>\d{2})∶(?<minute>\d{2})$""");
+            var reg = new Regex("""(?m)(?<sentence>[^.!?\s][^.!?]*(?:[.!?](?!['"]?\s|$)[^.!?]*)*[.!?]?['"]?(?=\s|$))$""");
             GLib.MatchInfo match;
 
             if (log != null) {
-                if (reg.match (subtitle, 0, out match)) {
-                    var e = new GLib.DateTime.now_local ();
-                    var d = new DateTime.local (e.get_year (),
-                                                int.parse(match.fetch_named ("month")),
-                                                int.parse(match.fetch_named ("day")),
-                                                int.parse(match.fetch_named ("hour")),
-                                                int.parse(match.fetch_named ("minute")),
-                                                e.get_second ());
-
-                    res = "%s".printf(TimeUtils.get_relative_datetime_compact(d));
+                if (reg.match (text, 0, out match)) {
+                    res = "%s".printf(match.fetch_named ("sentence"));
                 }
             }
         } catch (GLib.RegexError re) {

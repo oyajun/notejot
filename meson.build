@@ -1,5 +1,5 @@
 project('io.github.lainsce.Notejot', 'vala',
-        version: '3.3.3',
+        version: '3.5.2',
         meson_version: '>= 0.59.0'
 )
 
@@ -65,6 +65,7 @@ sources = [
   'src/ViewModels/NotebookViewModel.vala',
   'src/ViewModels/TrashViewModel.vala',
   'src/Views/NoteContentView.vala',
+  'src/Views/NoteGridView.vala',
   'src/Views/NoteListView.vala',
   'src/Views/NotebookListView.vala',
   'src/Views/NotebookMainListView.vala',
@@ -73,12 +74,12 @@ sources = [
   'src/Views/TrashListView.vala',
   'src/Views/View.vala',
   'src/Widgets/EditNotebookDialog.vala',
-  'src/Widgets/NoteRowBadge.vala',
+  'src/Widgets/NoteGridRowContent.vala',
   'src/Widgets/NoteRowContent.vala',
   'src/Widgets/MoveToDialog.vala',
   'src/Widgets/NotebookRowContent.vala',
   'src/Widgets/NoteTheme.vala',
-  'src/Widgets/TrashRowBadge.vala',
+  'src/Widgets/NotePicture.vala',
   'src/Widgets/TrashRowContent.vala',
 ]
 

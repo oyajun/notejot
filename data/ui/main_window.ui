@@ -1,7 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk" version="4.0"/>
-  <requires lib="libadwaita" version="1.0"/>
+  <object class="GtkSingleSelection" id="selection_model">
+    <property name="autoselect">no</property>
+    <property name="can-unselect">yes</property>
+    <property name="model">
+      <object class="GtkFilterListModel" id="filter_model">
+        <property name="incremental">1</property>
+        <property name="model">
+          <object class="GtkSortListModel">
+            <binding name="model">
+              <lookup name="notes">listview</lookup>
+            </binding>
+            <property name="sorter">
+              <object class="NotejotNoteSorter" id="sorter"/>
+            </property>
+          </object>
+        </property>
+        <property name="filter">
+          <object class="GtkEveryFilter">
+            <child>
+              <object class="GtkStringFilter">
+                <property name="ignore-case">0</property>
+                <property name="match-mode">exact</property>
+                <property name="expression">
+                  <lookup name="notebook" type="NotejotNote"/>
+                </property>
+                <property name="search" bind-source="nblistview" bind-property="sntext"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkAnyFilter">
+                <child>
+                  <object class="GtkStringFilter">
+                    <property name="ignore-case">0</property>
+                    <property name="match-mode">exact</property>
+                    <property name="expression">
+                      <lookup name="title" type="NotejotNote"/>
+                    </property>
+                    <property name="search" bind-source="note_search" bind-property="text"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
   <template class="NotejotMainWindow" parent="AdwApplicationWindow">
     <property name="visible">1</property>
     <property name="default-width">830</property>
@@ -14,15 +59,16 @@
           <object class="AdwLeaflet" id="leaf">
             <property name="can-navigate-back">1</property>
             <property name="can-navigate-forward">1</property>
-            <style>
-              <class name="rounded-main"/>
-            </style>
+            <property name="visible-child">nbgrid</property>
             <child>
               <object class="AdwLeafletPage">
                 <property name="child">
                   <object class="GtkWindowHandle" id="nbgrid">
                     <property name="hexpand">0</property>
                     <property name="vexpand">1</property>
+                    <style>
+                      <class name="rounded-main-child"/>
+                    </style>
                     <child>
                       <object class="GtkBox">
                         <property name="hexpand">0</property>
@@ -36,7 +82,7 @@
                             <style>
                               <class name="notejot-stitle"/>
                             </style>
-                            <child type="title">
+                            <child type="start">
                               <object class="GtkBox">
                                 <child>
                                   <object class="GtkLabel">
@@ -48,118 +94,128 @@
                                 </child>
                               </object>
                             </child>
+                            <child type="title">
+                              <object class="GtkBox">
+                              </object>
+                            </child>
                             <child type="end">
                               <object class="GtkMenuButton" id="menu_button">
                                 <property name="icon-name">open-menu-symbolic</property>
                               </object>
                             </child>
+                            <child type="end">
+                              <object class="GtkButton" id="en_button">
+                                <property name="action-name">win.action_edit_notebooks</property>
+                                <property name="tooltip-text" translatable="yes">Add/Remove/Rename notebooks</property>
+                                <property name="icon-name">notebook-config-symbolic</property>
+                              </object>
+                            </child>
+                            <child type="end">
+                              <object class="GtkToggleButton" id="search_button">
+                                <property name="icon-name">system-search-symbolic</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                         <child>
-                      <object class="GtkLabel">
-                        <property name="label" translatable="yes">Views</property>
-                        <property name="halign">start</property>
-                        <property name="margin-start">12</property>
-                        <property name="margin-bottom">6</property>
-                        <style>
-                          <class name="heading"/>
-                          <class name="dim-label"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkToggleButton" id="an_button">
-                        <signal name="toggled" handler="on_action_all_notes" />
-                        <property name="margin-bottom">6</property>
-                        <child>
-                          <object class="AdwButtonContent">
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Local</property>
                             <property name="halign">start</property>
-                            <property name="label" translatable="yes">All Notes</property>
-                            <property name="icon-name">view-list-symbolic</property>
+                            <property name="margin-start">18</property>
+                            <property name="margin-bottom">12</property>
+                            <property name="margin-top">6</property>
+                            <style>
+                              <class name="view-title"/>
+                            </style>
                           </object>
                         </child>
-                        <style>
-                          <class name="content-sidebar-notebooks-button"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkToggleButton" id="g_button">
-                        <signal name="toggled" handler="on_action_grid" />
-                        <property name="group">an_button</property>
-                        <property name="margin-bottom">6</property>
                         <child>
-                          <object class="AdwButtonContent">
-                            <property name="halign">start</property>
-                            <property name="label" translatable="yes">Note Grid</property>
-                            <property name="icon-name">view-grid-symbolic</property>
+                          <object class="GtkRevealer" id="search_revealer">
+                            <property name="reveal-child" bind-source="search_button" bind-property="active" bind-flags="sync-create"/>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="hexpand">1</property>
+                                <property name="orientation">vertical</property>
+                                <child>
+                                  <object class="GtkSearchEntry" id="note_search">
+                                    <property name="placeholder-text" translatable="yes">Search notes</property>
+                                    <property name="margin-start">18</property>
+                                    <property name="margin-end">18</property>
+                                    <style>
+                                      <class name="notejot-searchbar"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="NotejotNotebookMainListView" id="nblistview">
+                                    <property name="margin-start">6</property>
+                                    <property name="margin-end">6</property>
+                                    <binding name="notebooks">
+                                      <lookup name="notebooks" type="NotejotNotebookViewModel">
+                                        <lookup name="nbview-model">NotejotMainWindow</lookup>
+                                      </lookup>
+                                    </binding>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
                           </object>
                         </child>
-                        <style>
-                          <class name="content-sidebar-notebooks-button"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkToggleButton" id="t_button">
-                        <signal name="toggled" handler="on_action_trash" />
-                        <property name="group">an_button</property>
-                        <property name="margin-bottom">6</property>
                         <child>
-                          <object class="AdwButtonContent">
-                            <property name="halign">start</property>
-                            <property name="label" translatable="yes">Trash</property>
-                            <property name="icon-name">user-trash-symbolic</property>
+                          <object class="GtkToggleButton" id="an_button">
+                            <signal name="toggled" handler="on_action_all_notes"/>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">6</property>
+                            <property name="margin-bottom">6</property>
+                            <child>
+                              <object class="AdwButtonContent">
+                                <property name="halign">start</property>
+                                <property name="label" translatable="yes">All Notes</property>
+                                <property name="icon-name">view-list-symbolic</property>
+                              </object>
+                            </child>
+                            <style>
+                              <class name="content-sidebar-notebooks-button"/>
+                            </style>
                           </object>
                         </child>
-                        <style>
-                          <class name="content-sidebar-notebooks-button"/>
-                        </style>
-                      </object>
-                    </child>
                         <child>
-                          <object class="GtkBox">
-                            <property name="hexpand">1</property>
-                            <property name="homogeneous">1</property>
-                            <property name="spacing">6</property>
+                          <object class="GtkToggleButton" id="g_button">
+                            <signal name="toggled" handler="on_action_grid"/>
+                            <property name="group">an_button</property>
+                            <property name="margin-bottom">6</property>
+                            <property name="margin-start">6</property>
                             <property name="margin-end">6</property>
                             <child>
-                                <object class="GtkLabel" id="nb_label">
-                                <property name="label" translatable="yes">Notebooks</property>
+                              <object class="AdwButtonContent">
                                 <property name="halign">start</property>
-                                <property name="margin-start">12</property>
-                                <style>
-                                  <class name="heading"/>
-                                  <class name="dim-label"/>
-                                </style>
+                                <property name="label" translatable="yes">Note Grid</property>
+                                <property name="icon-name">view-grid-symbolic</property>
                               </object>
                             </child>
-                            <child>
-                              <object class="GtkButton" id="en_button">
-                                <property name="halign">end</property>
-                                <property name="action-name">win.action_edit_notebooks</property>
-                                <property name="icon-name">notebook-config-symbolic</property>
-                                <property name="tooltip-text" translatable="yes">Manage Notebooks…</property>
-                                <style>
-                                  <class name="flat"/>
-                                </style>
-                              </object>
-                            </child>
+                            <style>
+                              <class name="content-sidebar-notebooks-button"/>
+                            </style>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkScrolledWindow">
-                            <property name="margin-bottom">6</property>
-                            <property name="vexpand">1</property>
+                          <object class="GtkToggleButton" id="t_button">
+                            <signal name="toggled" handler="on_action_trash"/>
+                            <property name="group">an_button</property>
+                            <property name="valign">start</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
                             <child>
-                              <object class="NotejotNotebookMainListView" id="nblistview">
-                                <binding name="notebooks">
-                                  <lookup name="notebooks" type="NotejotNotebookViewModel">
-                                    <lookup name="nbview-model">NotejotMainWindow</lookup>
-                                  </lookup>
-                                </binding>
+                              <object class="AdwButtonContent">
+                                <property name="halign">start</property>
+                                <property name="label" translatable="yes">Trash</property>
+                                <property name="icon-name">user-trash-symbolic</property>
                               </object>
                             </child>
+                            <style>
+                              <class name="content-sidebar-notebooks-button"/>
+                            </style>
                           </object>
                         </child>
                       </object>
@@ -172,7 +228,7 @@
               <object class="AdwLeafletPage">
                 <property name="navigatable">0</property>
                 <property name="child">
-                  <object class="GtkSeparator">
+                  <object class="GtkSeparator" id="sep1">
                     <style>
                       <class name="no-sep2"/>
                     </style>
@@ -186,10 +242,64 @@
                   <object class="GtkStack" id="sgrid">
                     <property name="vexpand">1</property>
                     <property name="hexpand">0</property>
+                    <property name="hhomogeneous">0</property>
                     <property name="transition-type">crossfade</property>
                     <style>
-                      <class name="rounded-main-child"/>
+                      <class name="rounded-main-child2"/>
                     </style>
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">notegrid</property>
+                        <property name="child">
+                          <object class="GtkOverlay" id="glist_scroller">
+                            <child>
+                              <object class="GtkBox">
+                                <property name="vexpand">1</property>
+                                <property name="hexpand">0</property>
+                                <property name="orientation">vertical</property>
+                                <child>
+                                  <object class="GtkScrolledWindow" id="gscroller">
+                                    <property name="hscrollbar-policy">never</property>
+                                    <property name="vexpand">1</property>
+                                    <child>
+                                      <object class="NotejotNoteGridView" id="gridview">
+                                        <signal name="new_note_requested" handler="on_new_note_requested"/>
+                                        <binding name="notes">
+                                          <lookup name="notes" type="NotejotNoteViewModel">
+                                            <lookup name="view-model">NotejotMainWindow</lookup>
+                                          </lookup>
+                                        </binding>
+                                        <binding name="view-model">
+                                          <lookup name="view-model">NotejotMainWindow</lookup>
+                                        </binding>
+                                        <property name="ss">selection_model</property>
+                                        <property name="leaf">leaf</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child type="overlay">
+                              <object class="GtkButton" id="gnew_button">
+                                <property name="tooltip-text" translatable="yes">Add Note</property>
+                                <property name="icon-name">list-add-symbolic</property>
+                                <signal name="clicked" handler="on_new_note_requested"/>
+                                <property name="valign">end</property>
+                                <property name="halign">end</property>
+                                <property name="margin-end">18</property>
+                                <property name="margin-bottom">18</property>
+                                <style>
+                                  <class name="list-action-button"/>
+                                  <class name="accent-button"/>
+                                  <class name="opaque"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
                     <child>
                       <object class="GtkStackPage">
                         <property name="name">notelist</property>
@@ -206,7 +316,7 @@
                                     <property name="vexpand">1</property>
                                     <child>
                                       <object class="NotejotNoteListView" id="listview">
-                                        <signal name="new_note_requested" handler="on_new_note_requested" />
+                                        <signal name="new_note_requested" handler="on_new_note_requested"/>
                                         <binding name="notes">
                                           <lookup name="notes" type="NotejotNoteViewModel">
                                             <lookup name="view-model">NotejotMainWindow</lookup>
@@ -215,6 +325,8 @@
                                         <binding name="view-model">
                                           <lookup name="view-model">NotejotMainWindow</lookup>
                                         </binding>
+                                        <property name="ss">selection_model</property>
+                                        <property name="leaf">leaf</property>
                                       </object>
                                     </child>
                                   </object>
@@ -225,7 +337,7 @@
                               <object class="GtkButton" id="new_button">
                                 <property name="tooltip-text" translatable="yes">Add Note</property>
                                 <property name="icon-name">list-add-symbolic</property>
-                                <signal name="clicked" handler="on_new_note_requested" />
+                                <signal name="clicked" handler="on_new_note_requested"/>
                                 <property name="valign">end</property>
                                 <property name="halign">end</property>
                                 <property name="margin-end">18</property>
@@ -265,6 +377,7 @@
                                         <binding name="tview-model">
                                           <lookup name="tview-model">NotejotMainWindow</lookup>
                                         </binding>
+                                        <property name="leaf">leaf</property>
                                       </object>
                                     </child>
                                   </object>
@@ -275,7 +388,7 @@
                               <object class="GtkButton" id="trash_button">
                                 <property name="tooltip-text" translatable="yes">Clear Trash</property>
                                 <property name="icon-name">user-trash-symbolic</property>
-                                <signal name="clicked" handler="on_clear_trash_requested" />
+                                <signal name="clicked" handler="on_clear_trash_requested"/>
                                 <property name="valign">end</property>
                                 <property name="halign">end</property>
                                 <property name="margin-end">18</property>
@@ -299,7 +412,7 @@
               <object class="AdwLeafletPage">
                 <property name="navigatable">0</property>
                 <property name="child">
-                  <object class="GtkSeparator">
+                  <object class="GtkSeparator" id="sep2">
                     <style>
                       <class name="no-sep"/>
                     </style>
@@ -312,16 +425,16 @@
                 <property name="child">
                   <object class="GtkStack" id="grid">
                     <style>
-                      <class name="rounded-main-child2"/>
+                      <class name="rounded-main-child3"/>
                     </style>
                     <child>
                       <object class="GtkStackPage">
                         <property name="name">note</property>
                         <property name="child">
-                          <object class="NotejotNoteContentView">
+                          <object class="NotejotNoteContentView" id="notecontent">
                             <property name="hexpand">yes</property>
-                            <signal name="note_update_requested" handler="on_note_update_requested" />
-                            <signal name="note_removal_requested" handler="on_note_removal_requested" />
+                            <signal name="note_update_requested" handler="on_note_update_requested"/>
+                            <signal name="note_removal_requested" handler="on_note_removal_requested"/>
                             <binding name="note">
                               <lookup name="selected-note">listview</lookup>
                             </binding>
@@ -347,8 +460,8 @@
                         <property name="child">
                           <object class="NotejotTrashContentView">
                             <property name="hexpand">yes</property>
-                            <signal name="trash_update_requested" handler="on_trash_update_requested" />
-                            <signal name="trash_restore_requested" handler="on_trash_restore_requested" />
+                            <signal name="trash_update_requested" handler="on_trash_update_requested"/>
+                            <signal name="trash_restore_requested" handler="on_trash_restore_requested"/>
                             <binding name="trash">
                               <lookup name="selected-trash">tlistview</lookup>
                             </binding>

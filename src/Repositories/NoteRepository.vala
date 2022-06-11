@@ -47,7 +47,9 @@ public class Notejot.NoteRepository : Object {
     }
 
     public void insert_note (Note note) {
-        insert_queue.push_tail (note);
+        if (note != null) {
+            insert_queue.push_tail (note);
+        }
     }
 
     public void update_note (Note note) {
@@ -82,6 +84,7 @@ public class Notejot.NoteRepository : Object {
             current_note.text = note.text;
             current_note.notebook = note.notebook;
             current_note.color = note.color;
+            current_note.picture = note.picture;
             current_note.pinned = note.pinned;
         }
 

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <template class="NotejotNoteListView" parent="NotejotView">
+  <template class="NotejotNoteGridView" parent="NotejotView">
     <child>
       <object class="GtkBox" id="box">
         <property name="orientation">vertical</property>
         <child>
           <object class="AdwHeaderBar" id="stitlebar">
-            <property name="show-end-title-buttons">0</property>
+            <property name="show-end-title-buttons">1</property>
             <property name="show-start-title-buttons">0</property>
             <property name="valign">center</property>
             <property name="hexpand">0</property>
-            <property name="width-request">280</property>
+            <property name="width-request">220</property>
             <style>
               <class name="notejot-stitle"/>
             </style>
@@ -28,7 +28,7 @@
         </child>
         <child>
           <object class="GtkLabel">
-            <property name="label" translatable="yes">All Notes</property>
+            <property name="label" translatable="yes">Note Grid</property>
             <property name="halign">start</property>
             <property name="margin-start">18</property>
             <property name="margin-bottom">12</property>
@@ -41,23 +41,24 @@
         <child>
           <object class="GtkScrolledWindow">
             <property name="hscrollbar-policy">never</property>
-            <property name="width-request">280</property>
+            <property name="width-request">250</property>
             <property name="vexpand">1</property>
             <property name="margin-start">12</property>
             <property name="margin-end">12</property>
+            <property name="margin-bottom">12</property>
             <child>
-              <object class="GtkListView" id="lv">
+              <object class="GtkGridView" id="gv">
+                <property name="max-columns">5</property>
                 <style>
-                  <class name="boxed-list"/>
                   <class name="content-sidebar"/>
                 </style>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/io/github/lainsce/Notejot/noterow.ui</property>
+                    <property name="resource">/io/github/lainsce/Notejot/notegridrow.ui</property>
                   </object>
                 </property>
                 <binding name="model">
-                  <lookup name="ss">NotejotNoteListView</lookup>
+                  <lookup name="ss">NotejotNoteGridView</lookup>
                 </binding>
               </object>
             </child>

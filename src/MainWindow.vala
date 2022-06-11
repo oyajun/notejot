@@ -35,16 +35,40 @@ namespace Notejot {
         [GtkChild]
         public unowned Gtk.Box main_box;
         [GtkChild]
+        public unowned Gtk.Separator sep1;
+        [GtkChild]
+        public unowned Gtk.Separator sep2;
+        [GtkChild]
         public unowned Gtk.ToggleButton an_button;
+        [GtkChild]
+        public unowned Gtk.ToggleButton g_button;
+        [GtkChild]
+        public unowned Gtk.ToggleButton t_button;
+        [GtkChild]
+        public unowned Gtk.SingleSelection selection_model;
+        [GtkChild]
+        public unowned NoteContentView notecontent;
+        [GtkChild]
+        public unowned Gtk.Overlay list_scroller;
+        [GtkChild]
+        public unowned Gtk.Overlay glist_scroller;
+        [GtkChild]
+        public unowned Gtk.Sorter sorter;
 
         // Custom
         public MainWindow? mw {get; set;}
         public Adw.Leaflet? leaflet {get; set;}
+        public Gtk.SelectionModel? ss {get; set;}
+        public NotebookMainListView? mlv {get; set;}
 
         [GtkChild]
         public unowned NoteListView listview;
         [GtkChild]
+        public unowned NoteGridView gridview;
+        [GtkChild]
         public unowned TrashListView tlistview;
+        [GtkChild]
+        public unowned NotebookMainListView nblistview;
 
         // Etc
         public Gtk.Settings gtk_settings;
@@ -97,6 +121,9 @@ namespace Notejot {
             var builder = new Gtk.Builder.from_resource ("/io/github/lainsce/Notejot/menu.ui");
             menu_button.menu_model = (MenuModel)builder.get_object ("menu");
 
+            var theme = Gtk.IconTheme.get_for_display (Gdk.Display.get_default ());
+            theme.add_resource_path ("/io/github/lainsce/Notejot/");
+
             // Preparing window to be shown
             var settings = new Settings ();
             set_default_size(
@@ -108,10 +135,6 @@ namespace Notejot {
 
             var action_fontsize = settings.create_action ("font-size");
             app.add_action(action_fontsize);
-
-            if (Config.DEVELOPMENT) {
-                add_css_class ("devel");
-            }
 
             // Migrate things from old version
             if (settings.schema_version == 0) {
@@ -125,8 +148,8 @@ namespace Notejot {
             // Needed to ensure colors in places
             var style_manager = new StyleManager ();
             style_manager.set_css ("");
-            //
 
+this.set_size_request (360, 360);
             this.show ();
             this.mw = (MainWindow) app.get_active_window ();
             this.leaflet = leaf;
@@ -156,12 +179,13 @@ namespace Notejot {
         [GtkCallback]
         public void on_note_update_requested (Note note) {
             view_model.update_note (note);
+            sorter.changed (Gtk.SorterChange.DIFFERENT);
         }
 
         [GtkCallback]
         public void on_note_removal_requested (Note note) {
-            view_model.delete_note (note);
             tview_model.create_new_trash (note);
+            view_model.delete_note (note);
         }
 
         [GtkCallback]
@@ -185,27 +209,38 @@ namespace Notejot {
             var settings = new Settings ();
             settings.last_view = "list";
             leaf.set_visible_child (sgrid);
+            sgrid.set_hexpand (false);
+            sgrid.set_visible_child_name ("notelist");
+            grid.set_visible (true);
+            sep2.set_visible (true);
+            grid.set_visible_child_name ("note");
+            nblistview.sntext = "";
+            nblistview.selection_model.set_selected (-1);
             if (leaf.folded) {
                 listview.back_button.set_visible (true);
             } else {
                 listview.back_button.set_visible (false);
             }
-            sgrid.set_visible_child_name ("notelist");
-            grid.set_visible_child_name ("note");
+            notecontent.back2_button.set_visible (false);
         }
 
         [GtkCallback]
         public void on_action_grid () {
             var settings = new Settings ();
             settings.last_view = "grid";
-            // leaf.set_visible_child (sgrid);
-            // if (leaf.folded) {
-            //     listview.back_button.set_visible (true);
-            // } else {
-            //     listview.back_button.set_visible (false);
-            // }
-            // sgrid.set_visible_child_name ("notelist");
-            // grid.set_visible_child_name ("note");
+            leaf.set_visible_child (sgrid);
+            sgrid.set_hexpand (true);
+            sgrid.set_visible_child_name ("notegrid");
+            grid.set_visible (false);
+            sep2.set_visible (false);
+            grid.set_visible_child_name ("note");
+            nblistview.sntext = "";
+            nblistview.selection_model.set_selected (-1);
+            if (leaf.folded) {
+                gridview.back_button.set_visible (true);
+            } else {
+                gridview.back_button.set_visible (false);
+            }
         }
 
         [GtkCallback]
@@ -213,13 +248,19 @@ namespace Notejot {
             var settings = new Settings ();
             settings.last_view = "trash";
             leaf.set_visible_child (sgrid);
+            sgrid.set_hexpand (false);
+            sgrid.set_visible_child_name ("trashlist");
+            grid.set_visible (true);
+            sep2.set_visible (true);
+            grid.set_visible_child_name ("trash");
+            nblistview.sntext = "";
+            nblistview.selection_model.set_selected (-1);
             if (leaf.folded) {
                 tlistview.back_button.set_visible (true);
             } else {
                 tlistview.back_button.set_visible (false);
             }
-            sgrid.set_visible_child_name ("trashlist");
-            grid.set_visible_child_name ("trash");
+            notecontent.back2_button.set_visible (false);
         }
 
         public void make_note (string id, string title, string subtitle, string text, string color, string notebook, string pinned) {
@@ -230,7 +271,7 @@ namespace Notejot {
             log.text = text;
             log.color = color;
             log.notebook = notebook;
-            
+
             if (pinned == "0") {
                 log.pinned = false;
             } else if (pinned == "1") {

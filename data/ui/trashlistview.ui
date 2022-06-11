@@ -9,7 +9,7 @@
             <property name="show-end-title-buttons">0</property>
             <property name="valign">center</property>
             <property name="hexpand">0</property>
-            <property name="width-request">220</property>
+            <property name="width-request">280</property>
             <style>
               <class name="notejot-stitle"/>
               <class name="notejot-sbtitle"/>
@@ -26,10 +26,24 @@
           </object>
         </child>
         <child>
+          <object class="GtkLabel">
+            <property name="label" translatable="yes">Trash</property>
+            <property name="halign">start</property>
+            <property name="margin-top">6</property>
+            <property name="margin-start">18</property>
+            <property name="margin-bottom">12</property>
+            <style>
+              <class name="view-title"/>
+            </style>
+          </object>
+        </child>
+        <child>
           <object class="GtkScrolledWindow">
             <property name="hscrollbar-policy">never</property>
-            <property name="width-request">250</property>
+            <property name="width-request">280</property>
             <property name="vexpand">1</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
             <child>
               <object class="GtkListView" id="lv">
                 <style>

@@ -16,8 +16,8 @@
 * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 * Boston, MA 02110-1301 USA
 */
-[GtkTemplate (ui = "/io/github/lainsce/Notejot/notelistview.ui")]
-public class Notejot.NoteListView : View {
+[GtkTemplate (ui = "/io/github/lainsce/Notejot/notegridview.ui")]
+public class Notejot.NoteGridView : View {
     [GtkChild]
     public unowned Gtk.Button back_button;
     [GtkChild]
@@ -25,6 +25,7 @@ public class Notejot.NoteListView : View {
 
     public ObservableList<Note>? notes { get; set; }
     public Gtk.SingleSelection? ss {get; construct;}
+    public Adw.Leaflet leaf { get; construct; }
 
     Note? _selected_note;
     public Note? selected_note {
@@ -37,9 +38,8 @@ public class Notejot.NoteListView : View {
         }
     }
     public NoteViewModel? view_model { get; set; }
-    public Adw.Leaflet leaf { get; construct; }
 
-    public NoteListView () {
+    public NoteGridView () {
         Object (
             ss: ss,
             leaf: leaf
@@ -52,13 +52,16 @@ public class Notejot.NoteListView : View {
 
             if (pos != Gtk.INVALID_LIST_POSITION)
                 to.set_object (ss.model.get_item (pos));
+                if (((MainWindow)MiscUtils.find_ancestor_of_type<MainWindow>(this)).sgrid.get_visible_child_name () == "notegrid") {
+                    ((MainWindow)MiscUtils.find_ancestor_of_type<MainWindow>(this)).sgrid.set_visible (false);
+                    ((MainWindow)MiscUtils.find_ancestor_of_type<MainWindow>(this)).grid.set_visible (true);
+                }
                 ((Adw.Leaflet)MiscUtils.find_ancestor_of_type<Adw.Leaflet>(this)).set_visible_child (((MainWindow)MiscUtils.find_ancestor_of_type<MainWindow>(this)).grid);
 
             return true;
         });
 
         leaf.bind_property ("folded", back_button, "visible", SYNC_CREATE);
-        leaf.bind_property ("folded", stitlebar, "show-end-title-buttons", SYNC_CREATE);
 
         back_button.clicked.connect (() => {
             ((Adw.Leaflet)MiscUtils.find_ancestor_of_type<Adw.Leaflet>(this)).set_visible_child (((MainWindow)MiscUtils.find_ancestor_of_type<MainWindow>(this)).nbgrid);

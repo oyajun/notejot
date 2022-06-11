@@ -20,8 +20,25 @@
 public class Notejot.TrashRowContent : Adw.Bin {
     [GtkChild]
     unowned Gtk.Image pin;
+    [GtkChild]
+    unowned Gtk.Box row_box;
 
     Binding? pinned_binding;
+    private Gtk.CssProvider provider = new Gtk.CssProvider();
+
+    string? _color;
+    public string? color {
+        get { return _color; }
+        set {
+            if (value == _color)
+                return;
+
+            _color = value;
+
+            provider.load_from_data ((uint8[]) "@define-color note_color %s;".printf(_trash.color));
+            ((TrashListView)MiscUtils.find_ancestor_of_type<TrashListView>(this)).tview_model.update_trash_color (_trash, _color);
+        }
+    }
 
     Trash? _trash;
     public Trash? trash {
@@ -43,6 +60,10 @@ public class Notejot.TrashRowContent : Adw.Bin {
         Object(
             trash: trash
         );
+    }
+
+    construct {
+        row_box.get_style_context().add_provider(provider, 1);
     }
 
     [GtkCallback]

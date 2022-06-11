@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2017-2021 Lains
+* Copyright (C) 2017-2022 Lains
 *
 * This program is free software; you can redistribute it &&/or
 * modify it under the terms of the GNU General Public
@@ -21,14 +21,10 @@ class Notejot.NoteSorter : Gtk.Sorter {
     var note1 = item1 as Note;
     var note2 = item2 as Note;
 
-    if (note1 == null || note2 == null)
-      return EQUAL;
-
-    if (note2.pinned) {
-        return SMALLER;
-    } else {
-        return Gtk.Ordering.from_cmpfunc (note2.subtitle.collate (note1.subtitle));
-    }
+    var comp = (int) note2.pinned - (int) note1.pinned;
+    if (comp == 0)
+        comp = Gtk.Ordering.from_cmpfunc (note2.subtitle.collate(note1.subtitle));
+    return comp;
   }
 
   protected override Gtk.SorterOrder get_order () {

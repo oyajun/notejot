@@ -37,7 +37,7 @@ public class Notejot.NoteViewModel : Object {
             title = _("New Note"),
             subtitle = "%s".printf (dt.format ("%A, %d/%m %H∶%M")),
             text = _("Type text here…"),
-            notebook = "<i>" + _("No Notebook") + "</i>",
+            notebook = _("No Notebook"),
             color = "#797775",
             pinned = false
         };
@@ -59,6 +59,7 @@ public class Notejot.NoteViewModel : Object {
             text = trash.text,
             notebook = trash.notebook,
             color = trash.color,
+            picture = trash.picture,
             pinned = trash.pinned,
         };
 
@@ -103,8 +104,9 @@ public class Notejot.NoteViewModel : Object {
     }
 
     void save_notes () {
-        if (timeout_id != 0)
+        if (timeout_id != 0) {
             Source.remove (timeout_id);
+        }
 
         timeout_id = Timeout.add (500, () => {
             timeout_id = 0;

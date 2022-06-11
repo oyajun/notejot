@@ -1,15 +1,9 @@
 @define-color accent_color #e6c419;
 @define-color accent_bg_color #6d5600;
 @define-color accent_fg_color #ffd663;
-@define-color window_bg_color #1d1b16;
-@define-color view_bg_color #282620;
-@define-color headerbar_bg_color #1d1b16;
-@define-color popover_bg_color #282620;
-@define-color popover_fg_color #e5e3de;
-@define-color window_fg_color #e5e3de;
-@define-color view_fg_color #e5e3de;
-@define-color headerbar_fg_color #e5e3de;
-@define-color borders alpha(#989080, 0.5);
+@define-color window_bg_color #2d2d2d;
+@define-color headerbar_bg_color #2d2d2d;
+@define-color view_bg_color #0d0d0d;
 
 .list-action-button.destructive-action {
   background: #8c1d18;
